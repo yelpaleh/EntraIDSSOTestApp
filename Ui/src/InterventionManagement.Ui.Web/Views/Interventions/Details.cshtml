@@ -1,0 +1,23 @@
+@model InterventionDto
+@{
+    ViewData["Title"] = Model.Title;
+}
+<div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">@Model.Title</h1>
+        <p class="text-secondary mb-0">@Model.Location · @Model.ScheduledDate.ToString("MMM dd, yyyy")</p>
+    </div>
+    <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+</div>
+<dl class="row details-list">
+    <dt class="col-sm-3">Status</dt><dd class="col-sm-9">@Model.Status</dd>
+    <dt class="col-sm-3">Priority</dt><dd class="col-sm-9">@Model.Priority</dd>
+    <dt class="col-sm-3">Description</dt><dd class="col-sm-9">@Model.Description</dd>
+    <dt class="col-sm-3">Updated</dt><dd class="col-sm-9">@Model.UpdatedAtUtc.ToLocalTime().ToString("g")</dd>
+</dl>
+<form asp-action="Action" method="post" class="d-flex flex-wrap gap-2">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button class="btn btn-success" name="action" value="Approved">Approve</button>
+    <button class="btn btn-warning" name="action" value="Cancelled">Cancel</button>
+    <button class="btn btn-dark" name="action" value="Completed">Complete</button>
+</form>

@@ -1,0 +1,88 @@
+@using InterventionManagement.Ui.Application.Abstractions
+@using InterventionManagement.Ui.Core.Entities
+@using System.Security.Claims
+@inject IUserProfileService UserProfileService
+@{
+    var title = ViewData["Title"] as string ?? "Intervention Management";
+    var controller = (ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty);
+    AuthenticatedUserProfile? profile = null;
+    if (User.Identity?.IsAuthenticated == true)
+    {
+        try
+        {
+            profile = await UserProfileService.GetCurrentUserAsync(Context.RequestAborted);
+        }
+        catch
+        {
+            profile = new AuthenticatedUserProfile(User.Identity.Name ?? "Authenticated user", User.FindFirstValue(ClaimTypes.Email) ?? string.Empty, null, User.FindAll(ClaimTypes.Role).Select(x => x.Value).ToArray());
+        }
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@title - Intervention Management</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" asp-controller="Dashboard" asp-action="Index">Intervention Management</a>
+            <nav class="nav flex-column">
+                <a class="nav-link @(controller == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                <a class="nav-link @(controller == "Reports" ? "active" : "")" asp-controller="Reports" asp-action="Index">Reports</a>
+                <a class="nav-link @(controller == "Calendar" ? "active" : "")" asp-controller="Calendar" asp-action="Index">Calendar</a>
+                <a class="nav-link @(controller == "Settings" ? "active" : "")" asp-controller="Settings" asp-action="Index">Settings</a>
+            </nav>
+        </aside>
+        <div class="main-column">
+            <header class="topbar">
+                <div class="d-md-none fw-semibold">Intervention Management</div>
+                @if (profile is not null)
+                {
+                    <div class="dropdown ms-auto">
+                        <button class="btn profile-button dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            @if (!string.IsNullOrWhiteSpace(profile.PhotoDataUrl))
+                            {
+                                <img src="@profile.PhotoDataUrl" alt="" />
+                            }
+                            else
+                            {
+                                <span>@profile.DisplayName[..Math.Min(profile.DisplayName.Length, 1)].ToUpperInvariant()</span>
+                            }
+                            <span class="d-none d-sm-inline">@profile.DisplayName</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end profile-menu">
+                            <div class="px-3 py-2">
+                                <div class="fw-semibold">@profile.DisplayName</div>
+                                <div class="text-secondary small">@profile.Email</div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div class="px-3 py-2">
+                                @foreach (var role in profile.Roles.DefaultIfEmpty("Requester"))
+                                {
+                                    <span class="badge text-bg-light me-1">@role</span>
+                                }
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                <button class="dropdown-item" type="submit">Sign out</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </header>
+            <main class="content">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Ui/" />
+  <Folder Name="/Ui/src/">
+    <Project Path="Ui/src/InterventionManagement.Ui.Application/InterventionManagement.Ui.Application.csproj" />
+    <Project Path="Ui/src/InterventionManagement.Ui.Core/InterventionManagement.Ui.Core.csproj" />
+    <Project Path="Ui/src/InterventionManagement.Ui.Infrastructure/InterventionManagement.Ui.Infrastructure.csproj" />
+    <Project Path="Ui/src/InterventionManagement.Ui.Web/InterventionManagement.Ui.Web.csproj" />
+  </Folder>
+</Solution>

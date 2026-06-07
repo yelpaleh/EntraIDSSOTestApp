@@ -1,0 +1,42 @@
+@model LoginViewModel
+@{
+    Layout = null;
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign in - Intervention Management</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="auth-shell">
+    <main class="auth-panel">
+        <section>
+            <p class="text-uppercase text-secondary fw-semibold mb-2">Enterprise Operations</p>
+            <h1 class="h3 mb-3">Intervention Management</h1>
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger">@Model.ErrorMessage</div>
+            }
+            @if (Model.EnableSSO)
+            {
+                <form asp-action="ExternalLogin" method="post" class="mb-3">
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <button type="submit" class="btn btn-primary w-100">Continue with Entra ID</button>
+                </form>
+            }
+            @if (Model.EnableLocalLogin)
+            {
+                <form asp-action="LocalLogin" method="post" class="vstack gap-3">
+                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                    <input class="form-control" type="text" name="username" value="@Model.Username" placeholder="Username" autocomplete="username" required />
+                    <input class="form-control" type="password" name="password" placeholder="Password" autocomplete="current-password" required />
+                    <button type="submit" class="btn btn-outline-dark w-100">Sign in locally</button>
+                </form>
+            }
+        </section>
+    </main>
+</body>
+</html>

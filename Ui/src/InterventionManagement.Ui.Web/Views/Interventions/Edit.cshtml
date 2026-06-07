@@ -1,0 +1,39 @@
+@model InterventionFormViewModel
+@{
+    ViewData["Title"] = Model.Id.HasValue ? "Edit Intervention" : "New Intervention";
+}
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+<form asp-action="Save" method="post" class="intervention-form">
+    <input asp-for="Id" type="hidden" />
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label class="form-label" asp-for="Title"></label>
+            <input class="form-control" asp-for="Title" />
+            <span class="text-danger" asp-validation-for="Title"></span>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" asp-for="Priority"></label>
+            <select class="form-select" asp-for="Priority" asp-items="Html.GetEnumSelectList<InterventionPriority>()"></select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" asp-for="Location"></label>
+            <input class="form-control" asp-for="Location" />
+            <span class="text-danger" asp-validation-for="Location"></span>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" asp-for="ScheduledDate"></label>
+            <input class="form-control" asp-for="ScheduledDate" />
+        </div>
+        <div class="col-12">
+            <label class="form-label" asp-for="Description"></label>
+            <textarea class="form-control" asp-for="Description" rows="6"></textarea>
+        </div>
+    </div>
+    <div class="d-flex gap-2 mt-4">
+        <button class="btn btn-primary" type="submit">Save intervention</button>
+        <a class="btn btn-outline-secondary" asp-controller="Dashboard" asp-action="Index">Cancel</a>
+    </div>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

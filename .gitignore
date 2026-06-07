@@ -1,0 +1,6 @@
+# Visual Studio
+.vs/
+appsettings.local.json
+artifacts/
+bin/
+obj/

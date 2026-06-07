@@ -1,0 +1,26 @@
+@model IReadOnlyList<InterventionDto>
+@{
+    ViewData["Title"] = "Reports";
+}
+<h1 class="h3 mb-3">Reports</h1>
+<div class="table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Count</th>
+                <th>High/Critical</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var group in Model.GroupBy(x => x.Status).OrderBy(x => x.Key))
+        {
+            <tr>
+                <td>@group.Key</td>
+                <td>@group.Count()</td>
+                <td>@group.Count(x => x.Priority is InterventionPriority.High or InterventionPriority.Critical)</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

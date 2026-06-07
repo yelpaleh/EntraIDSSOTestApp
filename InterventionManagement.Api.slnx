@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Api/" />
+  <Folder Name="/Api/src/">
+    <Project Path="Api/src/InterventionManagement.Api.Application/InterventionManagement.Api.Application.csproj" />
+    <Project Path="Api/src/InterventionManagement.Api.Core/InterventionManagement.Api.Core.csproj" />
+    <Project Path="Api/src/InterventionManagement.Api.Infrastructure/InterventionManagement.Api.Infrastructure.csproj" />
+    <Project Path="Api/src/InterventionManagement.Api.Web/InterventionManagement.Api.Web.csproj" />
+  </Folder>
+</Solution>

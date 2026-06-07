@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Graph" Version="4.54.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.8.3" />
+    <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.8.3" />
+    <ProjectReference Include="..\InterventionManagement.Api.Application\InterventionManagement.Api.Application.csproj" />
+    <ProjectReference Include="..\InterventionManagement.Api.Core\InterventionManagement.Api.Core.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

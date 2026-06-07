@@ -1,0 +1,24 @@
+@model EmailNotificationSettingsDto
+@{
+    ViewData["Title"] = "Settings";
+}
+<h1 class="h3 mb-3">Email Notification Settings</h1>
+@if (TempData["StatusMessage"] is string status)
+{
+    <div class="alert alert-success">@status</div>
+}
+<form asp-action="Index" method="post" class="settings-form">
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" asp-for="Enabled" />
+        <label class="form-check-label" asp-for="Enabled">Enable notifications</label>
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="SenderMailbox">Sender mailbox</label>
+        <input class="form-control" asp-for="SenderMailbox" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="NotificationAlias">Notification alias</label>
+        <input class="form-control" asp-for="NotificationAlias" />
+    </div>
+    <button class="btn btn-primary" type="submit">Save settings</button>
+</form>

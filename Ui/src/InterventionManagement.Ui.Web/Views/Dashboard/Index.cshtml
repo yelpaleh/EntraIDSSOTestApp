@@ -1,0 +1,17 @@
+@model IReadOnlyList<InterventionDto>
+@{
+    ViewData["Title"] = "Dashboard";
+}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Dashboard</h1>
+        <p class="text-secondary mb-0">Active intervention workload and approval status.</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="Interventions" asp-action="Create">New intervention</a>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="metric"><span>Total</span><strong>@Model.Count</strong></div></div>
+    <div class="col-md-4"><div class="metric"><span>Awaiting approval</span><strong>@Model.Count(x => x.Status == InterventionStatus.Submitted)</strong></div></div>
+    <div class="col-md-4"><div class="metric"><span>Critical</span><strong>@Model.Count(x => x.Priority == InterventionPriority.Critical)</strong></div></div>
+</div>
+<partial name="_InterventionTable" model="Model" />

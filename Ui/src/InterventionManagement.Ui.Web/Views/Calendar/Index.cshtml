@@ -1,0 +1,15 @@
+@model IReadOnlyList<CalendarEventDto>
+@{
+    ViewData["Title"] = "Calendar";
+}
+<h1 class="h3 mb-3">Calendar</h1>
+<div class="calendar-grid">
+@foreach (var item in Model.OrderBy(x => x.Start))
+{
+    <a class="calendar-item" asp-controller="Interventions" asp-action="Details" asp-route-id="@item.Id">
+        <span>@item.Start.ToString("MMM dd")</span>
+        <strong>@item.Title</strong>
+        <small>@item.Status</small>
+    </a>
+}
+</div>

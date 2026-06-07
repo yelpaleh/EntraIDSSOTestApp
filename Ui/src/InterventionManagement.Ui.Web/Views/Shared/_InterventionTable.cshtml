@@ -1,0 +1,30 @@
+@model IReadOnlyList<InterventionDto>
+<div class="table-responsive data-surface">
+    <table class="table align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Intervention</th>
+                <th>Location</th>
+                <th>Date</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="fw-semibold">@item.Title</td>
+                <td>@item.Location</td>
+                <td>@item.ScheduledDate.ToString("MMM dd, yyyy")</td>
+                <td><span class="badge text-bg-light">@item.Priority</span></td>
+                <td><span class="badge text-bg-secondary">@item.Status</span></td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" asp-controller="Interventions" asp-action="Details" asp-route-id="@item.Id">View</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
