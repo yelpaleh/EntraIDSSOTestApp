@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Software Architecture Document - IAM Subsystem Integration</title>
+    <style>
+        @page { size: A4; margin: 20mm; }
+        body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #333333; margin: 0; padding: 0; }
+        .cover-page { height: 100vh; display: flex; flex-direction: column; justify-content: space-between; page-break-after: always; padding: 40px; box-sizing: border-box; }
+        .cover-title { margin-top: 150px; text-align: center; }
+        .cover-title h1 { color: #003366; font-size: 32px; font-weight: 700; border-bottom: 3px solid #003366; padding-bottom: 15px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .cover-title h2 { color: #555555; font-size: 18px; font-weight: 400; margin-top: 5px; }
+        .cover-metadata { margin-bottom: 100px; font-size: 14px; color: #444444; line-height: 1.8; border-left: 4px solid #003366; padding-left: 20px; }
+        
+        .content-container { padding: 20px; }
+        h1 { color: #003366; font-size: 22px; font-weight: 700; border-bottom: 2px solid #003366; padding-bottom: 8px; margin-top: 40px; margin-bottom: 15px; text-transform: uppercase; page-break-after: avoid; }
+        h2 { color: #004488; font-size: 16px; font-weight: 700; margin-top: 25px; margin-bottom: 12px; border-bottom: 1px solid #e5e5e5; padding-bottom: 4px; page-break-after: avoid; }
+        h3 { color: #0055aa; font-size: 14px; font-weight: 700; margin-top: 20px; margin-bottom: 8px; page-break-after: avoid; }
+        p, li { font-size: 14px; text-align: justify; color: #333333; }
+        ul, ol { margin-bottom: 15px; padding-left: 25px; }
+        li { margin-bottom: 6px; }
+        
+        code { font-family: 'Consolas', 'Courier New', monospace; background-color: #f4f4f4; padding: 2px 5px; font-size: 13px; border-radius: 3px; color: #c7254e; }
+        pre { background: #f8f9fa; border: 1px solid #e1e1e8; border-left: 4px solid #003366; padding: 15px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; line-height: 1.5; border-radius: 0 4px 4px 0; margin: 15px 0; white-space: pre-wrap; word-wrap: break-word; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; page-break-inside: avoid; }
+        th { background-color: #003366; color: #ffffff; padding: 10px 12px; text-align: left; font-weight: 600; border: 1px solid #003366; }
+        td { border: 1px solid #dddddd; padding: 10px 12px; vertical-align: top; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        .diagram-container { background: #fdfdfd; border: 1px solid #e2e8f0; border-radius: 6px; padding: 20px; text-align: center; margin: 25px 0; page-break-inside: avoid; }
+        .diagram-caption { font-size: 12px; color: #666666; margin-top: 10px; font-style: italic; }
+        .matrix-box { background: #f0f4f8; border: 1px solid #d0e0f0; border-radius: 4px; padding: 12px 20px; font-family: 'Georgia', serif; font-size: 14px; color: #003366; text-align: center; margin: 15px 0; font-style: italic; }
+        .page-break { page-break-before: always; }
+        .alert-note { background-color: #fffaf0; border-left: 4px solid #dd6b20; padding: 15px; margin: 15px 0; border-radius: 0 4px 4px 0; }
+        .alert-note p { margin: 0; font-size: 13.5px; color: #7b341e; }
+    </style>
+</head>
+<body>
+
+    <!-- COVER PAGE -->
+    <div class="cover-page">
+        <div class="cover-title">
+            <h1>Software Architecture Document (SAD)</h1>
+            <h2>Identity & Access Management (IAM) Subsystem Integration</h2>
+            <p style="font-size: 15px; color: #666666; margin-top: 20px; font-weight: 500;">Enterprise End-to-End SSO &amp; Self-Healing RBAC Architecture</p>
+        </div>
+        <div class="cover-metadata">
+            <strong>Project:</strong> Intervention Management Platform (UK Water Sector)<br>
+            <strong>System Framework Architecture:</strong> .NET 8.0 LTS (DDD Clean Architecture)<br>
+            <strong>Version Blueprint Tier:</strong> 2.0.0 (UAT &amp; Production Production-Ready)<br>
+            <strong>Author / Principal Architect:</strong> Harshal Yelpale<br>
+            <strong>Date of Issuance:</strong> June 2026
+        </div>
+    </div>
+
+    <!-- CONTENT START -->
+    <div class="content-container">
+        
+        <h1>1. Document Control &amp; Metadata</h1>
+        <h2>1.1 Revision Tracking History</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 12%;">Version</th>
+                    <th style="width: 15%;">Date</th>
+                    <th style="width: 18%;">Author</th>
+                    <th>Description of Structural Architectural Changes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1.0.0</td>
+                    <td>12-Jun-2026</td>
+                    <td>Harshal Yelpale</td>
+                    <td>Initial SSO Branch Formulation under isolated workspace identifier tracks (<code>feature_hby_SSO_12JUN26</code>). Formed dual-login schema models.</td>
+                </tr>
+                <tr>
+                    <td>1.1.0</td>
+                    <td>20-Jun-2026</td>
+                    <td>Harshal Yelpale</td>
+                    <td>Resolved MSAL caching race conditions. Integrated direct header injection mechanism inside the UI layer and normalized IT-spelled group typos.</td>
+                </tr>
+                <tr>
+                    <td>2.0.0</td>
+                    <td>26-Jun-2026</td>
+                    <td>Harshal Yelpale</td>
+                    <td>Implemented continuous self-healing role elevation mappings within API token transformations and finalized multi-tier deployment slot sticky configurations.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>1.2 Core Technology Stack Blueprint</h2>
+        <ul>
+            <li><strong>Core Framework Infrastructure:</strong> .NET 8.0 LTS (ASP.NET Core MVC Frontend Framework &amp; Stateless RESTful Web API Resource Tier).</li>
+            <li><strong>Architectural Pattern Layering:</strong> Clean Architecture separation incorporating Domain-Driven Design (DDD) encapsulation barriers.</li>
+            <li><strong>Identity &amp; Governance Schemes:</strong> Microsoft Entra ID (OpenID Connect protocol), Microsoft Graph API Core Client SDK, alongside a legacy SQL-backed Form Cookie fallback authentication container.</li>
+            <li><strong>Data Persistence Layer:</strong> High-performance Dapper ORM executing parameterized raw SQL blocks against standard SqlClient transaction boundaries.</li>
+            <li><strong>Cloud Service Footprint:</strong> Azure App Services (Linux containers), Azure Key Vault instances utilizing User-Assigned Managed Identity credentials, and deployment environment tracking configurations.</li>
+        </ul>
+
+        <div class="page-break"></div>
+
+        <h1>2. Executive Summary &amp; Architecture Overview</h1>
+        <p>The Intervention Management Platform serves as the mission-critical logging, routing, and audit ledger tracking framework for pipeline incidents, contamination boundaries, and infrastructure failures inside the regulated United Kingdom water sector. Given the high compliance tracking parameters required by sector regulators, authentication boundaries must maintain absolute precision, multi-role security parameters, and verifiable access histories.</p>
+        <p>This document details the complete end-to-end transformation of the system security boundary. Moving away from a legacy local SQL authentication engine, the platform has integrated an enterprise ecosystem led by Microsoft Entra ID Single Sign-On (SSO). The new design preserves local developer capabilities and emergency support access by supporting a parallel dual-login framework driven by infrastructure feature flags.</p>
+        <p>The overarching architecture addresses three significant distributed authentication traps:</p>
+        <ol>
+            <li><strong>The Timing Race Condition:</strong> Shifting the Microsoft Graph security group lookup out of deferred request handlers and nesting it directly into the OpenID Connect server-side token validation lifecycle event block, pre-allocating identity contexts.</li>
+            <li><strong>The Data Boundary Mismatch:</strong> Handling structural typos generated by corporate directory creation teams (such as <code>-REQUESTOR</code> with an 'O' vs database schema <code>-REQUESTER</code> with an 'E') immediately at the front gate entry point via inline normalization code blocks.</li>
+            <li><strong>The Transitional Identity Stale Cache:</strong> Implementing a fallback-aware dynamic memory caching lifespan configuration inside the UI engine to prevent initial provisioning loops from locking a user account out of their designated administrative dashboard layout configurations.</li>
+        </ol>
+
+        <h2>2.1 Subsystem Runtime Token Execution Flow Diagram</h2>
+        <div class="diagram-container">
+            <!-- INLINE SVG DIAGRAM -->
+            <svg viewBox="0 0 800 360" width="100%" height="360" xmlns="http://www.w3.org/2000/svg" style="background:#ffffff; font-family:'Segoe UI',sans-serif;">
+                <!-- Definitions of arrows -->
+                <defs>
+                    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start_reverse">
+                        <path d="M 0 2 L 8 5 L 0 8 z" fill="#4a5568"/>
+                    </marker>
+                </defs>
+                <!-- UI Container Box -->
+                <rect x="15" y="40" width="230" height="290" rx="6" fill="#f7fafc" stroke="#cbd5e0" stroke-width="1.5"/>
+                <text x="30" y="65" font-weight="bold" font-size="14" fill="#003366">UI App Layer (MVC UI)</text>
+                
+                <!-- UI Components -->
+                <rect x="30" y="90" width="200" height="40" rx="4" fill="#ebf8ff" stroke="#3182ce" stroke-width="1"/>
+                <text x="40" y="115" font-size="12" fill="#2b6cb0" font-weight="600">AuthenticationExtensions</text>
+                
+                <rect x="30" y="160" width="200" height="40" rx="4" fill="#ebf8ff" stroke="#3182ce" stroke-width="1"/>
+                <text x="40" y="185" font-size="12" fill="#2b6cb0" font-weight="600">UiRbacClaimsTransformer</text>
+                
+                <rect x="30" y="260" width="200" height="40" rx="4" fill="#ebf8ff" stroke="#3182ce" stroke-width="1"/>
+                <text x="40" y="285" font-size="12" fill="#2b6cb0" font-weight="600">AuthTokenHandler (Delegating)</text>
+
+                <!-- Cloud Providers -->
+                <rect x="340" y="40" width="160" height="50" rx="6" fill="#edf2f7" stroke="#4a5568" stroke-width="1.5"/>
+                <text x="355" y="70" font-size="13" font-weight="bold" fill="#2d3748">Microsoft Entra ID</text>
+                
+                <rect x="340" y="115" width="160" height="50" rx="6" fill="#edf2f7" stroke="#4a5568" stroke-width="1.5"/>
+                <text x="365" y="145" font-size="13" font-weight="bold" fill="#2d3748">Graph API Service</text>
+
+                <!-- API Container Box -->
+                <rect x="550" y="40" width="235" height="290" rx="6" fill="#f7fafc" stroke="#cbd5e0" stroke-width="1.5"/>
+                <text x="565" y="65" font-weight="bold" font-size="14" fill="#003366">API Backend Resource</text>
+                
+                <!-- API Components -->
+                <rect x="568" y="110" width="200" height="40" rx="4" fill="#e6fffa" stroke="#319795" stroke-width="1"/>
+                <text x="578" y="135" font-size="12" fill="#234e52" font-weight="600">EntraIdClaimsTransformer</text>
+                
+                <rect x="568" y="190" width="200" height="40" rx="4" fill="#e6fffa" stroke="#319795" stroke-width="1"/>
+                <text x="578" y="215" font-size="12" fill="#234e52" font-weight="600">AccountRepository (Dapper)</text>
+                
+                <rect x="568" y="270" width="200" height="40" rx="4" fill="#edf2f7" stroke="#4a5568" stroke-width="1"/>
+                <text x="578" y="295" font-size="12" fill="#2d3748" font-weight="600">SQL Server (UM Tables)</text>
+
+                <!-- Flow Lines (Paths) -->
+                <!-- UI Ext -> Entra ID -->
+                <path d="M 230 100 L 340 65" stroke="#4a5568" stroke-width="1.2" fill="none" marker-end="url(#arrow)"/>
+                <!-- Entra ID -> UI Ext -->
+                <path d="M 340 80 L 230 110" stroke="#4a5568" stroke-width="1.2" stroke-dasharray="3,3" fill="none" marker-end="url(#arrow)"/>
+                <!-- UI Ext -> Graph -->
+                <path d="M 230 120 L 340 135" stroke="#4a5568" stroke-width="1.2" fill="none" marker-end="url(#arrow)"/>
+                <!-- Graph -> UI Ext (Primes Cache) -->
+                <path d="M 340 145 L 180 145 L 180 160" stroke="#2b6cb0" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+                
+                <!-- UI Trans -> /api/me -->
+                <path d="M 230 180 L 568 135" stroke="#e53e3e" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+                <text x="270" y="200" font-size="11" fill="#e53e3e" font-weight="bold">Direct Headers Injection</text>
+                
+                <!-- AuthHandler -> API -->
+                <path d="M 230 280 L 568 145" stroke="#2b6cb0" stroke-width="1.2" fill="none" marker-end="url(#arrow)"/>
+                <text x="290" y="255" font-size="11" fill="#2b6cb0" font-weight="600">X-Entra-App-Roles (Header)</text>
+
+                <!-- API Transformer -> Repo -->
+                <path d="M 668 150 L 668 190" stroke="#319795" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+                <text x="675" y="175" font-size="11" fill="#234e52" font-weight="600">JIT / Sync</text>
+                
+                <!-- Repo -> DB -->
+                <path d="M 668 230 L 668 270" stroke="#319795" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+            </svg>
+            <div class="diagram-caption">Figure 2.1: Subsystem Sequence Mapping representing Token Interception, Local Caching, Cross-Origin Custom Header Packing, and Self-Healing Repository Persistence loops.</div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <h1>3. Database Architecture (RBAC Schema)</h1>
+        <p>The system maintains resource separation boundaries utilizing a traditional normalized relational Role-Based Access Control configuration residing inside the <code>[IMT]</code> SQL Server schema layout directory. The data model uses strict foreign key relationships to prevent orphan data entries across security bounds.</p>
+        
+        <h2>3.1 Data Dictionary Specifications</h2>
+        
+        <h3>3.1.1 `[IMT].[UM_Users]`</h3>
+        <p>Contains the core account description tracking attributes. It maps local relational rows directly to unique Entra ID object identifier values.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Column Name</th>
+                    <th>Data Type</th>
+                    <th>Nullability / Keys</th>
+                    <th>Default Bound</th>
+                    <th>Functional Purpose &amp; Constraint Validation Rules</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>UserId</code></td>
+                    <td><code>INT</code></td>
+                    <td>NOT NULL / PK</td>
+                    <td>Identity (1,1)</td>
+                    <td>Primary sequential lookup index token for internal database relations.</td>
+                </tr>
+                <tr>
+                    <td><code>AzureAdObjectId</code></td>
+                    <td><code>VARCHAR(250)</code></td>
+                    <td>NULL / Unique</td>
+                    <td>NONE</td>
+                    <td>Stores the unique, immutable Entra ID <code>oid</code> string GUID. Supports case-insensitive searching.</td>
+                </tr>
+                <tr>
+                    <td><code>Username</code></td>
+                    <td><code>VARCHAR(150)</code></td>
+                    <td>NOT NULL</td>
+                    <td>NONE</td>
+                    <td>Local account string (pre-split email prefix) used for legacy systems alignment.</td>
+                </tr>
+                <tr>
+                    <td><code>Email</code></td>
+                    <td><code>VARCHAR(150)</code></td>
+                    <td>NOT NULL / Unique</td>
+                    <td>NONE</td>
+                    <td>The core system communication email endpoint index handle.</td>
+                </tr>
+                <tr>
+                    <td><code>DisplayName</code></td>
+                    <td><code>VARCHAR(250)</code></td>
+                    <td>NOT NULL</td>
+                    <td>NONE</td>
+                    <td>Sanitized common descriptive presentation name used inside layout UI elements.</td>
+                </tr>
+                <tr>
+                    <td><code>IsActive</code></td>
+                    <td><code>BIT</code></td>
+                    <td>NOT NULL</td>
+                    <td>1</td>
+                    <td>Boolean flag controlling authorization access during runtime queries.</td>
+                </tr>
+                <tr>
+                    <td><code>CreatedAt</code></td>
+                    <td><code>DATETIME</code></td>
+                    <td>NOT NULL</td>
+                    <td><code>GETUTCDATE()</code></td>
+                    <td>Audit timestamp indicating initial account creation.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>3.1.2 `[IMT].[UM_UserRoles]`</h3>
+        <p>An intersection bridge table implementing an enterprise multi-role structure mapping context layout.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Column Name</th>
+                    <th>Data Type</th>
+                    <th>Nullability / Keys</th>
+                    <th>Default Bound</th>
+                    <th>Functional Purpose &amp; Constraint Validation Rules</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>UserId</code></td>
+                    <td><code>INT</code></td>
+                    <td>NOT NULL / Composite PK</td>
+                    <td>NONE</td>
+                    <td>Foreign Key tracking link directly pointing back to <code>[IMT].[UM_Users](UserId)</code>. Cascade delete enabled.</td>
+                </tr>
+                <tr>
+                    <td><code>RoleId</code></td>
+                    <td><code>INT</code></td>
+                    <td>NOT NULL / Composite PK</td>
+                    <td>NONE</td>
+                    <td>Foreign Key tracking link directly pointing back to <code>[IMT].[UM_Roles](RoleId)</code>.</td>
+                </tr>
+                <tr>
+                    <td><code>AssignedAt</code></td>
+                    <td><code>DATETIME</code></td>
+                    <td>NOT NULL</td>
+                    <td><code>GETUTCDATE()</code></td>
+                    <td>Audit tracker noting the moment this access intersection record was synchronized.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>3.2 Business Priority Single-Role Matrix Hierarchy</h2>
+        <p>When an enterprise corporate account is associated with multiple directory security groups simultaneously, the application front-end simplifies the claims array into exactly **one active operational identity context**. Ranks are assigned lower values based on organizational weight:</p>
+        <div class="matrix-box">
+            Priority Hierarchy Formulation: ADMIN (Weight 1) &rarr; APPROVER (Weight 2) &rarr; SITEMANAGER (Weight 3) &rarr; REQUESTER (Weight 4) &rarr; DEVELOPER (Weight 5) &rarr; UNKNOWN (Weight 99)
+        </div>
+        <p>This prioritization is enforced during serialization routines using specialized LINQ query filters, ensuring predictable UI layouts and clear component visibility across the platform.</p>
+
+        <div class="page-break"></div>
+
+        <h1>4. UI Application Architecture (Frontend MVC Gateway)</h1>
+        <p>The MVC frontend application serves as the primary authentication gateway, managing OpenID Connect challenge workflows, handling cookie sessions, and passing security contexts down to backend resource APIs.</p>
+        
+        <h2>4.1 `AuthenticationServiceExtensions.cs`</h2>
+        <p>This code establishes the dual authentication pipeline. It securely chains onto Microsoft Identity's token validation events to pre-fetch group memberships from the Microsoft Graph API, while smoothly fallback-routing to standard cookies if SSO is disabled.</p>
+        <pre>using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Web;
+using NLog;
+
+namespace InterventionsManagementUI.AppFrontend.Extensions
+{
+    public static class AuthenticationServiceExtensions
+    {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+        public static IServiceCollection AddDualAuthentication(this IServiceCollection services, IConfiguration configuration)
+        {
+            var enableSso = configuration.GetValue&lt;bool&gt;("AuthenticationFeatures:EnableSSO");
+            var jwtSettings = configuration.GetSection("JwtSettings");
+            
+            var authBuilder = services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            });
+
+            authBuilder.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
+                options.Cookie.Name = "InterventionsAuthCookie";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.Path = "/";
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+                options.LoginPath = "/Account/Login";
+            });
+
+            if (enableSso)
+            {
+                var apiScopes = configuration.GetSection("DownstreamApi:Scopes").Get&lt;string[]&gt;() ?? Array.Empty&lt;string&gt;();
+
+                authBuilder
+                    .AddMicrosoftIdentityWebApp(configuration.GetSection("AzureAd"))
+                    .EnableTokenAcquisitionToCallDownstreamApi(apiScopes)
+                    .AddInMemoryTokenCaches();
+
+                services.Configure&lt;OpenIdConnectOptions&gt;(OpenIdConnectDefaults.AuthenticationScheme, options =>
+                {
+                    options.SaveTokens = true;
+                    var existingOnTokenValidatedHandler = options.Events.OnTokenValidated;
+
+                    options.Events.OnTokenValidated = async context =>
+                    {
+                        if (existingOnTokenValidatedHandler != null)
+                        {
+                            await existingOnTokenValidatedHandler(context);
+                        }
+
+                        var tokenAcquisition = context.HttpContext.RequestServices.GetRequiredService&lt;ITokenAcquisition&gt;();
+                        var cache = context.HttpContext.RequestServices.GetRequiredService&lt;IMemoryCache&gt;();
+                        var env = context.HttpContext.RequestServices.GetRequiredService&lt;IWebHostEnvironment&gt;();
+
+                        var oid = context.Principal?.FindFirst("oid")?.Value 
+                               ?? context.Principal?.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
+
+                        if (!string.IsNullOrEmpty(oid))
+                        {
+                            string cacheKey = $"UI_AppRoles_{oid.ToLowerInvariant()}";
+                            _logger.Info($"[SSO HANDSHAKE] Intercepted OIDC Validation Event. Warming cache key: '{cacheKey}'");
+
+                            try
+                            {
+                                var graphToken = await tokenAcquisition.GetAccessTokenForUserAsync(
+                                    scopes: new[] { "User.Read" },
+                                    authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme,
+                                    user: context.Principal
+                                );
+
+                                using var client = new HttpClient();
+                                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", graphToken);
+                                var response = await client.GetAsync("https://graph.microsoft.com/v1.0/me/appRoleAssignments");
+                                
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    var json = await response.Content.ReadAsStringAsync();
+                                    using var doc = JsonDocument.Parse(json);
+                                    var extractedGroups = new HashSet&lt;string&gt;();
+                                    
+                                    string envShortcode = env.EnvironmentName.ToUpper() switch 
+                                    { 
+                                        "LOCAL" => "DEV", "DEV" => "DEV", "UAT" => "UAT", "PROD" => "PROD", _ => "DEV" 
+                                    };
+
+                                    if (doc.RootElement.TryGetProperty("value", out var rolesArray))
+                                    {
+                                        foreach (var role in rolesArray.EnumerateArray())
+                                        {
+                                            if (role.TryGetProperty("principalDisplayName", out var nameProp))
+                                            {
+                                                var groupName = nameProp.GetString()?.ToUpper();
+                                                if (!string.IsNullOrEmpty(groupName) && 
+                                                    groupName.Contains("SG-APPC-INTERVENTIONS") && 
+                                                    groupName.Contains($"-{envShortcode}-"))
+                                                {
+                                                    // CRITICAL INTERACTION FIX: Normalize IT typo suffix variation safely
+                                                    if (groupName.Contains("-REQUESTOR"))
+                                                    {
+                                                        groupName = groupName.Replace("-REQUESTOR", "-REQUESTER");
+                                                    }
+                                                    extractedGroups.Add(groupName);
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    string appRolesHeaderValue = string.Join(",", extractedGroups);
+                                    cache.Set(cacheKey, appRolesHeaderValue, TimeSpan.FromMinutes(60));
+                                    _logger.Info($"[SSO HANDSHAKE] Cache successfully primed for OID '{oid}' with groups: '{appRolesHeaderValue}'");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(ex, $"[SSO HANDSHAKE CRITICAL ERROR] Graph API collection execution mapping failed: {ex.Message}");
+                            }
+                        }
+                    };
+                });
+            }
+            else
+            {
+                // Graceful registration fallback to prevent DI container instantiating crashes under local dev builds
+                services.AddScoped&lt;ITokenAcquisition&gt;(provider =&gt; null!);
+                _logger.Warn("[AUTH CONFIG TRACE] SSO is explicitly disabled. Null factory registered for ITokenAcquisition constraints.");
+            }
+
+            return services;
+        }
+    }
+}</pre>
+
+        <div class="page-break"></div>
+
+        <h2>4.2 `AuthTokenHandler.cs`</h2>
+        <p>An outbound HTTP message handler that intercepts calls heading to downstream resource services. It injects the active Bearer token and appends custom app role claims to ensure clean security handshakes.</p>
+        <pre>using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Web;
+using NLog;
+
+namespace InterventionsManagementUI.Infrastructure.HTTPHandler
+{
+    public class AuthTokenHandler : DelegatingHandler
+    {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IConfiguration _configuration;
+        private readonly IMemoryCache _cache;
+        private readonly ITokenAcquisition _tokenAcquisition;
+
+        public AuthTokenHandler(IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IMemoryCache cache, ITokenAcquisition tokenAcquisition)
+        {
+            _httpContextAccessor = httpContextAccessor;
+            _configuration = configuration;
+            _cache = cache;
+            _tokenAcquisition = tokenAcquisition;
+        }
+
+        protected override async Task&lt;HttpResponseMessage&gt; SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            var requestPath = request.RequestUri?.ToString() ?? "Unknown";
+
+            if (httpContext?.User?.Identity != null && httpContext.User.Identity.IsAuthenticated)
+            {
+                var isSsoUser = httpContext.User.HasClaim(c =&gt; c.Type == "preferred_username" || c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier");
+
+                if (isSsoUser && _tokenAcquisition != null)
+                {
+                    try
+                    {
+                        var apiScopes = _configuration.GetSection("DownstreamApi:Scopes").Get&lt;string[]&gt;() ?? Array.Empty&lt;string&gt;();
+                        var apiToken = await _tokenAcquisition.GetAccessTokenForUserAsync(
+                            scopes: apiScopes,
+                            authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme,
+                            user: httpContext.User
+                        );
+
+                        if (!string.IsNullOrEmpty(apiToken))
+                        {
+                            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiToken);
+                        }
+
+                        var oidClaim = httpContext.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier") ?? httpContext.User.FindFirst("oid");
+                        if (oidClaim != null)
+                        {
+                            string cacheKey = $"UI_AppRoles_{oidClaim.Value.ToLowerInvariant()}";
+
+                            if (_cache.TryGetValue(cacheKey, out string appRolesHeaderValue) && !string.IsNullOrEmpty(appRolesHeaderValue))
+                            {
+                                if (request.Headers.Contains("X-Entra-App-Roles"))
+                                {
+                                    request.Headers.Remove("X-Entra-App-Roles");
+                                }
+                                request.Headers.Add("X-Entra-App-Roles", appRolesHeaderValue);
+                                _logger.Info($"[HANDLER TRACE] Stamped pre-fetched roles header for path '{requestPath}' directly from cache window.");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, $"[HANDLER CRITICAL FAILURE] Outbound bearer attachment generation aborted: {ex.Message}");
+                    }
+                }
+            }
+
+            return await base.SendAsync(request, cancellationToken);
+        }
+    }
+}</pre>
+
+        <div class="page-break"></div>
+
+        <h2>4.3 `UiRbacClaimsTransformer.cs`</h2>
+        <p>Manages user session parsing in the UI. It uses a direct header injection strategy to bypass initial execution race conditions, and applies a short-lived cache lifespan to protect fallback profiles from data-stale locks.</p>
+        <pre>using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Web;
+using NLog;
+
+namespace InterventionsManagementUI.AppFrontend.Extensions
+{
+    public class UiRbacClaimsTransformer : IClaimsTransformation
+    {
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly IMemoryCache _cache;
+        private readonly IConfiguration _configuration;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ITokenAcquisition _tokenAcquisition;
+
+        public UiRbacClaimsTransformer(IMemoryCache cache, IConfiguration configuration, IHttpClientFactory httpClientFactory, ITokenAcquisition tokenAcquisition)
+        {
+            _cache = cache;
+            _configuration = configuration;
+            _httpClientFactory = httpClientFactory;
+            _tokenAcquisition = tokenAcquisition;
+        }
+
+        public async Task&lt;ClaimsPrincipal&gt; TransformAsync(ClaimsPrincipal principal)
+        {
+            if (principal?.Identity == null || !principal.Identity.IsAuthenticated) return principal;
+            if (principal.HasClaim(c =&gt; c.Type == "UiRbacTransformed")) return principal;
+
+            var oidClaim = principal.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier") ?? principal.FindFirst("oid");
+            if (oidClaim == null) return principal;
+
+            string azureAdObjectId = oidClaim.Value;
+            string cacheKey = $"UiUserClaims_{azureAdObjectId.ToLowerInvariant()}";
+
+            if (!_cache.TryGetValue(cacheKey, out UserProfileDto profile))
+            {
+                _logger.Info($"[TRANSFORMER TRACE] Cache Miss for key '{cacheKey}'. Initiating remote profile dispatch query to API.");
+                try
+                {
+                    if (_tokenAcquisition == null) return principal;
+
+                    var apiScopes = _configuration.GetSection("DownstreamApi:Scopes").Get&lt;string[]&gt;() ?? Array.Empty&lt;string&gt;();
+                    var accessToken = await _tokenAcquisition.GetAccessTokenForUserAsync(apiScopes, OpenIdConnectDefaults.AuthenticationScheme, principal);
+
+                    var client = _httpClientFactory.CreateClient("IMTHttpClient");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                    client.DefaultRequestHeaders.Add("X-User-Email", principal.FindFirst("preferred_username")?.Value ?? "unknown@domain.com");
+                    client.DefaultRequestHeaders.Add("X-User-DisplayName", principal.FindFirst("name")?.Value ?? "Unknown User");
+
+                    // ==================== CRITICAL FIX: DIRECT HEADER INJECTION ====================
+                    string rolesCacheKey = $"UI_AppRoles_{azureAdObjectId.ToLowerInvariant()}";
+                    if (_cache.TryGetValue(rolesCacheKey, out string appRoles) && !string.IsNullOrEmpty(appRoles))
+                    {
+                        client.DefaultRequestHeaders.Add("X-Entra-App-Roles", appRoles);
+                        _logger.Info($"[TRANSFORMER TRACE] Directly stamped roles header onto /api/me request: '{appRoles}'");
+                    }
+
+                    var response = await client.GetAsync("me");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        profile = JsonSerializer.Deserialize&lt;UserProfileDto&gt;(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                        if (profile != null)
+                        {
+                            // ==================== FIX 2: STALE CACHE LIFESPAN GUARD ====================
+                            bool isFallback = profile.Roles != null && profile.Roles.Contains("REQUESTER") && profile.Roles.Count == 1;
+                            var cacheOptions = new MemoryCacheEntryOptions();
+                            
+                            if (isFallback) {
+                                cacheOptions.SetAbsoluteExpiration(TimeSpan.FromSeconds(5));
+                                _logger.Warn($"[TRANSFORMER TRACE] Received fallback REQUESTER role profile. Setting short-lived 5-second defensive cache expiration.");
+                            } else {
+                                cacheOptions.SetAbsoluteExpiration(TimeSpan.FromMinutes(60));
+                                _logger.Info($"[TRANSFORMER TRACE] Received verified role profile. Setting standard 60-minute cache validation lifespan.");
+                            }
+
+                            _cache.Set(cacheKey, profile, cacheOptions);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, $"[TRANSFORMER CRITICAL] Exception occurred during profile synchronization: {ex.Message}");
+                }
+            }
+
+            var clone = principal.Clone();
+            var newIdentity = (ClaimsIdentity)clone.Identity!;
+
+            if (profile != null)
+            {
+                newIdentity.AddClaim(new Claim("userId", profile.UserId.ToString()));
+                
+                // Enforce Single-Active Role Priority Matrix Rules using inline extraction
+                int GetRolePriority(string roleName) =&gt; roleName?.ToUpper() switch { "ADMIN" =&gt; 1, "APPROVER" =&gt; 2, "SITEMANAGER" =&gt; 3, "REQUESTER" =&gt; 4, "DEVELOPER" =&gt; 5, _ =&gt; 99 };
+                var topActiveRole = profile.Roles?.OrderBy(GetRolePriority).FirstOrDefault();
+                
+                if (!string.IsNullOrEmpty(topActiveRole))
+                {
+                    newIdentity.AddClaim(new Claim(ClaimTypes.Role, topActiveRole));
+                }
+
+                foreach (var perm in profile.Permissions ?? Enumerable.Empty&lt;string&gt;())
+                {
+                    newIdentity.AddClaim(new Claim("permission", perm));
+                }
+            }
+
+            newIdentity.AddClaim(new Claim("UiRbacTransformed", "true"));
+            return clone;
+        }
+    }
+}</pre>
+
+        <div class="page-break"></div>
+
+        <h1>5. Backend API Architecture (Resource Server)</h1>
+        <p>The API Layer functions as a stateless resource server. It extracts identity headers from the front-end, runs them through authorization checks, and handles real-time data provisioning on the fly.</p>
+        
+        <h2>5.1 `EntraIdRbacClaimsTransformer.cs`</h2>
+        <p>Processes incoming endpoint requests by splitting them into two automated pipelines: an initial user registration gate (Path A) or an automatic role elevation sync gate (Path B).</p>
+        <pre>using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+
+namespace InterventionManagement.API.Infrastructure.Security
+{
+    public class EntraIdRbacClaimsTransformer : IClaimsTransformation
+    {
+        private readonly ILogger&lt;EntraIdRbacClaimsTransformer&gt; _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAccountRepository _accountRepository;
+
+        public EntraIdRbacClaimsTransformer(ILogger&lt;EntraIdRbacClaimsTransformer&gt; logger, IHttpContextAccessor httpContextAccessor, IAccountRepository accountRepository)
+        {
+            _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
+            _accountRepository = accountRepository;
+        }
+
+        public async Task&lt;ClaimsPrincipal&gt; TransformAsync(ClaimsPrincipal principal)
+        {
+            if (principal?.Identity == null || !principal.Identity.IsAuthenticated) return principal;
+            if (principal.HasClaim(c =&gt; c.Type == "DbRbacTransformed")) return principal;
+
+            var oidClaim = principal.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier") ?? principal.FindFirst("oid");
+            if (oidClaim == null) return principal;
+
+            string azureAdObjectId = oidClaim.Value;
+            var httpContext = _httpContextAccessor.HttpContext;
+            var rolesFromHeader = new List&lt;string&gt;();
+            
+            var groupsHeader = httpContext?.Request.Headers["X-Entra-App-Roles"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(groupsHeader))
+            {
+                foreach (var group in groupsHeader.Split(','))
+                {
+                    var roleToken = group.Split('-').Last().ToUpper();
+                    if (!rolesFromHeader.Contains(roleToken)) rolesFromHeader.Add(roleToken);
+                }
+            }
+
+            var dbUser = await _accountRepository.GetDbUserByAzureAdObjectIdAsync(azureAdObjectId);
+
+            // ==================== PATH A: JIT INITIAL PROVISIONING GATE ====================
+            // Isolated completely from volatile permissions metrics to prevent unique constraint crashes
+            if (dbUser == null)
+            {
+                _logger.LogInformation($"[API JIT PROVISIONING] User OID '{azureAdObjectId}' not found in database. Executing registration transaction.");
+                var email = principal.FindFirst(ClaimTypes.Email)?.Value ?? httpContext?.Request.Headers["X-User-Email"].FirstOrDefault() ?? "unknown@domain.com";
+                var displayName = principal.FindFirst("name")?.Value ?? httpContext?.Request.Headers["X-User-DisplayName"].FirstOrDefault() ?? "Unknown User";
+
+                if (!rolesFromHeader.Any()) rolesFromHeader.Add("REQUESTER");
+
+                await _accountRepository.ProvisionEntraIdUserAsync(azureAdObjectId, email, displayName, rolesFromHeader);
+                dbUser = await _accountRepository.GetDbUserByAzureAdObjectIdAsync(azureAdObjectId);
+            }
+            // ==================== PATH B: CONTINUOUS SELF-HEALING SYNC GATE ====================
+            else if (dbUser != null && dbUser.ActiveRole == "REQUESTER" && rolesFromHeader.Any(r =&gt; r != "REQUESTER"))
+            {
+                _logger.LogInformation($"[API RBAC SYNC] Self-healing role upgrade triggered for '{dbUser.Email}'. Upgrading REQUESTER to actual groups: '{string.Join(", ", rolesFromHeader)}'");
+                await _accountRepository.UpdateUserRolesFromEntraIdAsync(azureAdObjectId, rolesFromHeader);
+                dbUser = await _accountRepository.GetDbUserByAzureAdObjectIdAsync(azureAdObjectId);
+            }
+
+            var permissionCodes = await _accountRepository.GetPermissionCodesByAzureAdObjectIdAsync(azureAdObjectId);
+            
+            var clone = principal.Clone();
+            var newIdentity = (ClaimsIdentity)clone.Identity!;
+            
+            if (dbUser != null)
+            {
+                newIdentity.AddClaim(new Claim("userId", dbUser.UserId.ToString()));
+                newIdentity.AddClaim(new Claim(ClaimTypes.Role, dbUser.ActiveRole ?? "REQUESTER"));
+            }
+            foreach (var code in permissionCodes ?? Enumerable.Empty&lt;string&gt;())
+            {
+                newIdentity.AddClaim(new Claim("permission", code));
+            }
+
+            newIdentity.AddClaim(new Claim("DbRbacTransformed", "true"));
+            return clone;
+        }
+    }
+}</pre>
+
+        <div class="page-break"></div>
+
+        <h2>5.2 `AccountRepository.cs` (Dapper System Queries)</h2>
+        <p>Encapsulates standard database interaction logic using explicit Dapper parameters wrapped inside atomic transaction blocks.</p>
+        <pre>using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using Dapper;
+using NLog;
+
+namespace InterventionManagement.API.Infrastructure.Repositories
+{
+    public class AccountRepository : IAccountRepository
+    {
+        private readonly IDbContext _dbContext;
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+        public AccountRepository(IDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
+        public async Task ProvisionEntraIdUserAsync(string azureAdObjectId, string email, string displayName, List&lt;string&gt; roleNames)
+        {
+            using var connection = _dbContext.GetSqlConnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                string insertUserSql = @"
+                    INSERT INTO [IMT].[UM_Users] (AzureAdObjectId, Username, Email, DisplayName, IsActive, CreatedAt)
+                    VALUES (@AzureAdObjectId, @Username, @Email, @DisplayName, 1, GETUTCDATE());
+                    SELECT CAST(SCOPE_IDENTITY() as int);";
+
+                var userParams = new DynamicParameters();
+                userParams.Add("@AzureAdObjectId", azureAdObjectId, DbType.String);
+                userParams.Add("@Username", email.Split('@')[0], DbType.String);
+                userParams.Add("@Email", email, DbType.String);
+                userParams.Add("@DisplayName", displayName, DbType.String);
+
+                int newUserId = await connection.QuerySingleAsync&lt;int&gt;(insertUserSql, userParams, transaction);
+
+                if (roleNames != null && roleNames.Any())
+                {
+                    string insertRolesSql = @"
+                        INSERT INTO [IMT].[UM_UserRoles] (UserId, RoleId, AssignedAt)
+                        SELECT @UserId, RoleId, GETUTCDATE()
+                        FROM [IMT].[UM_Roles]
+                        WHERE UPPER(RoleName) = UPPER(@RoleName);";
+
+                    var roleParams = roleNames.Select(r =&gt; new { UserId = newUserId, RoleName = r });
+                    await connection.ExecuteAsync(insertRolesSql, roleParams, transaction);
+                }
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _logger.Error(ex, "Failed to provision user and roles transactionally.");
+                throw;
+            }
+        }
+
+        public async Task UpdateUserRolesFromEntraIdAsync(string azureAdObjectId, List&lt;string&gt; roleNames)
+        {
+            using var connection = _dbContext.GetSqlConnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                string getUserIdSql = "SELECT UserId FROM [IMT].[UM_Users] WHERE AzureAdObjectId = @AzureAdObjectId;";
+                int? userId = await connection.QueryFirstOrDefaultAsync&lt;int?&gt;(getUserIdSql, new { AzureAdObjectId = azureAdObjectId }, transaction);
+
+                if (userId.HasValue)
+                {
+                    string deleteRolesSql = "DELETE FROM [IMT].[UM_UserRoles] WHERE UserId = @UserId;";
+                    await connection.ExecuteAsync(deleteRolesSql, new { UserId = userId.Value }, transaction);
+
+                    if (roleNames != null && roleNames.Any())
+                    {
+                        string insertRolesSql = @"
+                            INSERT INTO [IMT].[UM_UserRoles] (UserId, RoleId, AssignedAt)
+                            SELECT @UserId, RoleId, GETUTCDATE()
+                            FROM [IMT].[UM_Roles]
+                            WHERE UPPER(RoleName) = UPPER(@RoleName);";
+
+                        var roleParams = roleNames.Select(r =&gt; new { UserId = userId.Value, RoleName = r });
+                        await connection.ExecuteAsync(insertRolesSql, roleParams, transaction);
+                    }
+                }
+                transaction.Commit();
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _logger.Error(ex, "Failed to update user roles transactionally.");
+                throw;
+            }
+        }
+    }
+}</pre>
+
+        <div class="page-break"></div>
+
+        <h1>6. Cloud Infrastructure, Key Vault &amp; Slot Configuration</h1>
+        <p>The staging and production pipelines use infrastructure-level configuration bindings to keep secrets completely decoupled from source code control.</p>
+        
+        <h2>6.1 Azure Key Vault &amp; Managed Identity Linkages</h2>
+        <p>Sensitive settings, including the <code>AzureAd:ClientSecret</code> token and backend database strings, are isolated inside an Azure Key Vault container. At startup, the application logs into the vault using an system-assigned **Azure Managed Identity token**, pulling configurations directly into system RAM without writing secrets to local disk storage.</p>
+
+        <h2>6.2 The Nested Key Double-Underscore Mapping Rule</h2>
+        <p>To safely pass configurations down to Linux container instances, standard appsettings JSON colons (<code>:</code>) are automatically converted into **double underscores (<code>__</code>)** inside the Azure App Service configuration blade:</p>
+        <ul>
+            <li>Local Machine JSON Configuration Target: <code>AuthenticationFeatures:EnableSSO</code></li>
+            <li>Azure Portal Web App Configuration Key Name: <strong><code>AuthenticationFeatures__EnableSSO</code></strong></li>
+        </ul>
+
+        <h2>6.3 Multi-Environment Sticky Slots Topology</h2>
+        <p>To prevent configuration variables from getting scrambled during production rollouts, every environment setting is securely locked down using **Deployment Slot Settings (Sticky flags)**.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Target Deployment Environment</th>
+                    <th>Target Infrastructure Slot Location</th>
+                    <th>Target Environment Variable Token</th>
+                    <th>Assigned String Value</th>
+                    <th>Slot Lock Policy (Sticky Setting Status)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Local Developer Isolation</strong></td>
+                    <td>Local Workstation Sandbox</td>
+                    <td><code>AuthenticationFeatures:EnableSSO</code></td>
+                    <td><code>false</code></td>
+                    <td>Non-applicable (Local Configuration Override)</td>
+                </tr>
+                <tr>
+                    <td><strong>Development Testing Slot</strong></td>
+                    <td>Production App Service Container</td>
+                    <td><code>AuthenticationFeatures__EnableSSO</code></td>
+                    <td><code>true</code></td>
+                    <td><strong>Enabled (Sticky to Physical Slot)</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>UAT Staging Environment</strong></td>
+                    <td>Staging Integration Slot</td>
+                    <td><code>AuthenticationFeatures__EnableSSO</code></td>
+                    <td><code>true</code></td>
+                    <td><strong>Enabled (Sticky to Physical Slot)</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>UAT Stable Release Target</strong></td>
+                    <td>Production App Service Container</td>
+                    <td><code>AuthenticationFeatures__EnableSSO</code></td>
+                    <td><code>true</code></td>
+                    <td><strong>Enabled (Sticky to Physical Slot)</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h1>7. Branching Strategy &amp; Zero-Downtime Rollout</h1>
+        <p>The platform follows a strict lifecycle management process to ensure seamless integration and zero-downtime updates across water utility operation centers.</p>
+        
+        <h2>7.1 Branch Isolation Topology</h2>
+        <p>All SSO-related refactoring was isolated to dedicated feature branches to keep the primary pipeline stable and uninterrupted during development:</p>
+        <ul>
+            <li>Frontend MVC UI Subsystem Isolation Branch: <code>feature_hby_SSO_12JUN26</code></li>
+            <li>Stateless Backend Resource Subsystem Isolation Branch: <code>feature_hby_SSO_12JUN26</code></li>
+        </ul>
+        <p>The code followed a progressive verification path: feature modifications were built and verified directly inside local environments first, then pushed to the Dev slot, and finally merged down to the main <code>dev</code> integration tracking branch before moving to the <code>uat</code> release target.</p>
+
+        <h2>7.2 Zero-Downtime Swap Execution Routine</h2>
+        <p>To perform seamless updates without dropping active database connections or user sessions, the platform uses an automated Blue-Green deployment slot workflow:</p>
+        <ol>
+            <li>The new codebase is deployed to the inactive **Staging Slot**, while the active production container continues handling real-time user traffic.</li>
+            <li>Automated warmth diagnostics fire inside the staging environment to verify Key Vault synchronization links and database connectivity.</li>
+            <li>Azure triggers an underlying network routing switch. The staging slot is promoted to production instantaneously. Because our environment variables are marked as **Sticky**, the containers swap seamlessly while remaining bound to their correct regional database configurations.</li>
+        </ol>
+
+        <div class="alert-note">
+            <p><strong>ARCHITECTURAL SAFEGUARD NOTE:</strong> If error spikes or exception logs are detected right after a swap, the routing engine automatically reverses the network switch. This brings the old container profile back online immediately, preventing any service disruptions for active users.</p>
+        </div>
+
+    </div>
+    <!-- CONTENT END -->
+
+</body>
+</html>
