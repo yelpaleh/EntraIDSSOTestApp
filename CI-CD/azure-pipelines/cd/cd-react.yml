@@ -1,0 +1,144 @@
+# azure-pipelines/cd.yml
+
+# ============================================================
+# CD PIPELINE
+# React UI
+#
+# CI completion triggers CD.
+#
+# Supported source branches:
+#   dev
+#   uat
+#   preprod
+#   prod
+# ============================================================
+
+trigger: none
+
+pr: none
+
+
+# ============================================================
+# CI PIPELINE RESOURCE
+# ============================================================
+
+resources:
+
+  pipelines:
+
+    - pipeline: reactCI
+
+      # IMPORTANT:
+      # This must exactly match the Azure DevOps CI pipeline name.
+      source: reactCI
+
+      trigger:
+
+        branches:
+
+          include:
+            - dev
+            - uat
+            - preprod
+            - prod
+
+
+# ============================================================
+# Global variables
+# ============================================================
+
+variables:
+
+  # Source branch of the CI pipeline that triggered CD.
+  #
+  # Example:
+  # refs/heads/dev
+  # refs/heads/uat
+  # refs/heads/preprod
+  # refs/heads/prod
+
+  - name: SourceBranch
+    value: $[ resources.pipeline.reactCI.sourceBranch ]
+
+
+# ============================================================
+# Stages
+# ============================================================
+
+stages:
+
+
+# ============================================================
+# DEV
+# ============================================================
+
+- template: templates/cd-deploy.yml
+
+  parameters:
+
+    stageName: DeployDEV
+
+    displayName: 'Deploy React UI to DEV'
+
+    environmentName: 'IMP-UI-DEV'
+
+    variableGroup: 'VG-IMP-UI-DEV-NONPROD-RG'
+
+    branchName: 'dev'
+
+
+# ============================================================
+# UAT
+# ============================================================
+
+- template: templates/cd-deploy.yml
+
+  parameters:
+
+    stageName: DeployUAT
+
+    displayName: 'Deploy React UI to UAT'
+
+    environmentName: 'IMP-UI-UAT'
+
+    variableGroup: 'VG-IMP-UI-UAT-NONPROD-RG'
+
+    branchName: 'uat'
+
+
+# ============================================================
+# PREPROD
+# ============================================================
+
+- template: templates/cd-deploy.yml
+
+  parameters:
+
+    stageName: DeployPREPROD
+
+    displayName: 'Deploy React UI to PREPROD'
+
+    environmentName: 'IMP-UI-PREPROD'
+
+    variableGroup: 'VG-IMP-UI-PREPROD-NONPROD-RG'
+
+    branchName: 'preprod'
+
+
+# ============================================================
+# PROD
+# ============================================================
+
+- template: templates/cd-deploy.yml
+
+  parameters:
+
+    stageName: DeployPROD
+
+    displayName: 'Deploy React UI to PROD'
+
+    environmentName: 'IMP-UI-PROD'
+
+    variableGroup: 'VG-IMP-UI-PROD-RG'
+
+    branchName: 'prod'

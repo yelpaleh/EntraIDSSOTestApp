@@ -1,0 +1,163 @@
+# azure-pipelines/templates/cd-deploy.yml
+
+# ============================================================
+# CD DEPLOYMENT TEMPLATE
+# ============================================================
+
+parameters:
+
+  - name: stageName
+    type: string
+
+  - name: displayName
+    type: string
+
+  - name: environmentName
+    type: string
+
+  - name: variableGroup
+    type: string
+
+  - name: branchName
+    type: string
+
+
+stages:
+
+- stage: ${{ parameters.stageName }}
+
+  displayName: '${{ parameters.displayName }}'
+
+
+  # ----------------------------------------------------------
+  # Only deploy if the CI pipeline came from the matching
+  # environment branch.
+  # ----------------------------------------------------------
+
+  condition: |
+    and(
+      succeeded(),
+      eq(
+        variables['SourceBranch'],
+        'refs/heads/${{ parameters.branchName }}'
+      )
+    )
+
+
+  # ----------------------------------------------------------
+  # Environment-specific variables
+  # ----------------------------------------------------------
+
+  variables:
+
+    - group: ${{ parameters.variableGroup }}
+
+
+  jobs:
+
+  # ==========================================================
+  # DEPLOYMENT JOB
+  # ==========================================================
+
+  - deployment: DeployReactUI
+
+    displayName: 'Deploy React UI - ${{ parameters.environmentName }}'
+
+
+    # --------------------------------------------------------
+    # Azure DevOps Environment
+    #
+    # Configure approvals/checks on this environment in
+    # Azure DevOps.
+    # --------------------------------------------------------
+
+    environment: '${{ parameters.environmentName }}'
+
+
+    strategy:
+
+      runOnce:
+
+        deploy:
+
+          steps:
+
+          # --------------------------------------------------
+          # Display deployment information
+          # --------------------------------------------------
+
+          - powershell: |
+
+              Write-Host "=========================================="
+              Write-Host "React UI Deployment"
+              Write-Host "=========================================="
+
+              Write-Host "Environment : ${{ parameters.environmentName }}"
+              Write-Host "Branch      : $(SourceBranch)"
+              Write-Host "Build       : $(resources.pipeline.reactCI.runName)"
+
+              Write-Host "=========================================="
+
+            displayName: 'Deployment Information'
+
+
+          # --------------------------------------------------
+          # Artifact is automatically downloaded for a
+          # deployment job.
+          #
+          # Explicit download can be used for clarity.
+          # --------------------------------------------------
+
+          - download: reactCI
+
+            artifact: react-ui
+
+            displayName: 'Download React UI Artifact'
+
+
+          # --------------------------------------------------
+          # Validate artifact
+          # --------------------------------------------------
+
+          - powershell: |
+
+              Write-Host "Searching for React UI ZIP..."
+
+              $zip = Get-ChildItem `
+                "$(Pipeline.Workspace)\react-ui" `
+                -Filter "react-ui.zip" `
+                -Recurse `
+                | Select-Object -First 1
+
+              if ($null -eq $zip) {
+
+                Write-Error "react-ui.zip was not found."
+
+                exit 1
+              }
+
+              Write-Host "Artifact found:"
+              Write-Host $zip.FullName
+
+            displayName: 'Validate Deployment Artifact'
+
+
+          # --------------------------------------------------
+          # Deploy to Azure App Service
+          # --------------------------------------------------
+
+          - task: AzureWebApp@1
+
+            displayName: 'Deploy React UI to Azure App Service'
+
+            inputs:
+
+              azureSubscription: '$(AZURE_SUBSCRIPTION)'
+
+              appType: 'webApp'
+
+              appName: '$(AZURE_WEBAPP_NAME)'
+
+              package: '$(Pipeline.Workspace)/react-ui/react-ui.zip'
+
+              deploymentMethod: 'zipDeploy'

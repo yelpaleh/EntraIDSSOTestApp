@@ -1,0 +1,161 @@
+# azure-pipelines/templates/ci-build.yml
+
+# ============================================================
+# CI BUILD TEMPLATE
+# ============================================================
+
+parameters:
+
+  - name: stageName
+    type: string
+
+  - name: displayName
+    type: string
+
+  - name: environmentName
+    type: string
+
+  - name: variableGroup
+    type: string
+
+  - name: branchName
+    type: string
+
+
+stages:
+
+- stage: ${{ parameters.stageName }}
+
+  displayName: '${{ parameters.displayName }}'
+
+  # ----------------------------------------------------------
+  # Run only when the correct branch triggered CI
+  # ----------------------------------------------------------
+
+  condition: |
+    and(
+      succeeded(),
+      eq(
+        variables['Build.SourceBranch'],
+        'refs/heads/${{ parameters.branchName }}'
+      )
+    )
+
+  variables:
+
+    # --------------------------------------------------------
+    # Environment-specific configuration
+    # --------------------------------------------------------
+
+    - group: ${{ parameters.variableGroup }}
+
+  jobs:
+
+  - job: BuildReactUI
+
+    displayName: 'Build React UI - ${{ parameters.environmentName }}'
+
+    pool:
+      vmImage: 'windows-latest'
+
+    steps:
+
+    # --------------------------------------------------------
+    # Checkout
+    # --------------------------------------------------------
+
+    - checkout: self
+      clean: true
+
+    # --------------------------------------------------------
+    # Node.js
+    # --------------------------------------------------------
+
+    - task: NodeTool@0
+      displayName: 'Install Node.js'
+      inputs:
+        versionSpec: '20.x'
+
+    # --------------------------------------------------------
+    # Display versions
+    # --------------------------------------------------------
+
+    - script: |
+        node --version
+        npm --version
+      displayName: 'Verify Node.js and npm'
+
+    # --------------------------------------------------------
+    # Install dependencies
+    # --------------------------------------------------------
+
+    - script: |
+        npm ci
+      displayName: 'Install Dependencies'
+
+    # --------------------------------------------------------
+    # Build React application
+    #
+    # Vite reads VITE_API_BASE_URL from environment.
+    # --------------------------------------------------------
+
+    - script: |
+        echo Building React UI for ${{ parameters.environmentName }}
+        echo API URL configured from Azure DevOps Variable Group
+
+        npm run build
+      displayName: 'Build React App'
+
+      env:
+        VITE_API_BASE_URL: $(VITE_API_BASE_URL)
+
+    # --------------------------------------------------------
+    # Verify dist
+    # --------------------------------------------------------
+
+    - powershell: |
+
+        Write-Host "Checking React build output..."
+
+        if (!(Test-Path "$(Build.SourcesDirectory)\dist")) {
+            Write-Error "dist folder was not generated."
+            exit 1
+        }
+
+        Write-Host "React build generated successfully."
+
+        Get-ChildItem "$(Build.SourcesDirectory)\dist" -Recurse
+
+      displayName: 'Validate React Build'
+
+    # --------------------------------------------------------
+    # Archive React dist
+    # --------------------------------------------------------
+
+    - task: ArchiveFiles@2
+      displayName: 'Create React UI ZIP'
+
+      inputs:
+        rootFolderOrFile: '$(Build.SourcesDirectory)/dist'
+
+        includeRootFolder: false
+
+        archiveType: 'zip'
+
+        archiveFile: '$(Build.ArtifactStagingDirectory)/react-ui.zip'
+
+        replaceExistingArchive: true
+
+    # --------------------------------------------------------
+    # Publish Pipeline Artifact
+    # --------------------------------------------------------
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish React UI Artifact'
+
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+
+        artifact: 'react-ui'
+
+        publishLocation: 'pipeline'

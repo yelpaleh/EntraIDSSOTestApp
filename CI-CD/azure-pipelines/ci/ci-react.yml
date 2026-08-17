@@ -1,0 +1,91 @@
+# azure-pipelines/ci.yml
+
+# ============================================================
+# CI PIPELINE
+# React UI
+#
+# Branches:
+#   dev
+#   uat
+#   preprod
+#   prod
+#
+# This pipeline builds only the branch that triggered the run.
+# ============================================================
+
+trigger:
+  batch: true
+  branches:
+    include:
+      - dev
+      - uat
+      - preprod
+      - prod
+
+# PR validation can be enabled if required.
+# It does NOT deploy anything.
+#
+# pr:
+#   branches:
+#     include:
+#       - dev
+#       - uat
+#       - preprod
+#       - prod
+
+pool:
+  vmImage: 'windows-latest'
+
+
+stages:
+
+# ============================================================
+# DEV
+# ============================================================
+
+- template: templates/ci-build.yml
+  parameters:
+    stageName: BuildDEV
+    displayName: 'Build React UI - DEV'
+    environmentName: 'DEV'
+    variableGroup: 'VG-IMP-UI-DEV-NONPROD-RG'
+    branchName: 'dev'
+
+
+# ============================================================
+# UAT
+# ============================================================
+
+- template: templates/ci-build.yml
+  parameters:
+    stageName: BuildUAT
+    displayName: 'Build React UI - UAT'
+    environmentName: 'UAT'
+    variableGroup: 'VG-IMP-UI-UAT-NONPROD-RG'
+    branchName: 'uat'
+
+
+# ============================================================
+# PREPROD
+# ============================================================
+
+- template: templates/ci-build.yml
+  parameters:
+    stageName: BuildPREPROD
+    displayName: 'Build React UI - PREPROD'
+    environmentName: 'PREPROD'
+    variableGroup: 'VG-IMP-UI-PREPROD-NONPROD-RG'
+    branchName: 'preprod'
+
+
+# ============================================================
+# PROD
+# ============================================================
+
+- template: templates/ci-build.yml
+  parameters:
+    stageName: BuildPROD
+    displayName: 'Build React UI - PROD'
+    environmentName: 'PROD'
+    variableGroup: 'VG-IMP-UI-PROD-RG'
+    branchName: 'prod'
