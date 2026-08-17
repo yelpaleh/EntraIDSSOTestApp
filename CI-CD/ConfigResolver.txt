@@ -1,0 +1,132 @@
+4. Resolving the Vite Build-Time vs Runtime import.meta.env Issue
+Vite statically replaces import.meta.env.VITE_API_BASE_URL with a hardcoded string at compile time (npm run build).
+
+To allow a single build artifact to dynamically connect to different backend URLs per slot:
+
+A. Load config.js in index.html
+
+HTML
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Intervention Management</title>
+    <!-- Loads runtime window.__APP_CONFIG__ before React mounts -->
+    <script src="/config.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+-----------------
+B. Define the Configuration Resolver (src/config/env.ts)
+
+TypeScript
+interface AppConfig {
+  VITE_API_BASE_URL?: string;
+}
+
+declare global {
+  interface Window {
+    __APP_CONFIG__?: AppConfig;
+  }
+}
+
+export const getApiBaseUrl = (): string => {
+  // 1. Read dynamically from runtime config.js injected by CD pipeline
+  const runtimeUrl = window.__APP_CONFIG__?.VITE_API_BASE_URL;
+  if (runtimeUrl && runtimeUrl.trim() !== '') {
+    return runtimeUrl;
+  }
+  // 2. Fallback to local .env during local development (npm run dev)
+  return import.meta.env.VITE_API_BASE_URL || '';
+};
+-----------------
+C. Consume Resolver in API Client (src/lib/api/client.ts / apiClient.ts)
+
+TypeScript
+import axios from 'axios';
+import { getApiBaseUrl } from '@/config/env';
+
+const apiClient = axios.create({
+  baseURL: getApiBaseUrl(),
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export default apiClient;
+=============================================
+Config Resolver from ChatGpt - API service implementation
+
+For example, if you're using Axios:
+
+src/services/api.ts
+import axios from "axios";
+import { getApiBaseUrl } from "../config/config";
+
+
+const api = axios.create({
+    baseURL: getApiBaseUrl(),
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
+
+
+export default api;
+
+Then anywhere in React:
+
+import api from "../services/api";
+
+
+const response = await api.get("/api/users");
+
+You no longer need:
+
+import.meta.env.VITE_API_BASE_URL
+
+throughout the application.
+===============================
+Add environment name variable
+
+Each variable group should additionally contain:
+
+APP_ENVIRONMENT
+
+For example:
+
+DEV:
+
+APP_ENVIRONMENT=DEV
+
+STAGE:
+
+APP_ENVIRONMENT=STAGE
+
+UAT:
+
+APP_ENVIRONMENT=UAT
+
+PREPROD:
+
+APP_ENVIRONMENT=PREPROD
+
+PROD:
+
+APP_ENVIRONMENT=PROD
+==============================
+Variables:
+
+VITE_API_BASE_URL
+AZURE_SUBSCRIPTION
+AZURE_WEBAPP_NAME
+
+Example:
+
+VITE_API_BASE_URL = https://dev-api-xxxxx.azurewebsites.net
+AZURE_SUBSCRIPTION = intervmgmt-nonprod
+AZURE_WEBAPP_NAME = st-int...-dev-neu-web2
